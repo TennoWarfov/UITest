@@ -49,11 +49,8 @@ public class DragExtended : Drag, IPointerDownHandler
         base.OnDrag(eventData);
 
         Vector2 mousePosition = Input.mousePosition;
-        Vector2 localPoint;
-
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)_cachedTransform, mousePosition, null, out localPoint))
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)_cachedTransform, mousePosition, null, out _))
         {
-            // Выполняем лучевой тест
             PointerEventData pointerEventData = new(EventSystem.current)
             {
                 position = eventData.position
@@ -62,11 +59,9 @@ public class DragExtended : Drag, IPointerDownHandler
 
             _raycaster.Raycast(pointerEventData, results);
 
-            // Получаем Transform, над которым находится указатель мыши
             if (results.Count > 0)
             {
-                Transform hoveredTransform = results[0].gameObject.transform;
-                //Debug.Log(hoveredTransform.name);
+                _lastHoveredTransfrom = results[0].gameObject.transform;
             }
         }
     }
@@ -89,16 +84,13 @@ public class DragExtended : Drag, IPointerDownHandler
         else if (enteringUIElement.TryGetComponent(out DataHolder _))
         {
             _cachedTransform.SetParent(enteringUIElement.parent);
+            int enteringUiIndex = GetChildIndexInHierarchy(enteringUIElement);
         }
         else
         {
-            Debug.Log(_lastParent);
-            Debug.Log(_lastSiblingIndex);
             _cachedTransform.SetParent(_lastParent);
             _cachedTransform.SetSiblingIndex(_lastSiblingIndex);
         }
-
-        Debug.Log(eventData.pointerEnter.name);
 
         _image.raycastTarget = true;
     }
