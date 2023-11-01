@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.srejonkhan.another-file-browser": {
+      "version": "https://github.com/SrejonKhan/AnotherFileBrowser.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "51780d434ea9290afd5492eb60624724c8cd4dd1"
+    },
     "com.unity.collab-proxy": {
       "version": "2.2.0",
       "depth": 0,
@@ -56,6 +63,13 @@
     "com.unity.ide.vscode": {
       "version": "1.2.5",
       "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.1",
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
