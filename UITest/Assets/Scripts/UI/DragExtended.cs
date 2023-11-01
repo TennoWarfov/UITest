@@ -29,7 +29,7 @@ public class DragExtended : Drag
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
-        _lastSortingPresenter.UnregisterDataHodler(_dataHolder);
+        _lastSortingPresenter.UnregisterDataHolder(_dataHolder);
         _lastParent = _cachedTransform.parent;
         _lastSiblingIndex = GetChildIndexInHierarchy(transform);
         _image.raycastTarget = false;
@@ -74,6 +74,12 @@ public class DragExtended : Drag
             _graphics[i].maskable = true;
         }
 
+        if (eventData.pointerEnter == null)
+        {
+            ResetRect();
+            return;
+        }
+
         var enteringUIElement = eventData.pointerEnter.transform;
 
         if (enteringUIElement.TryGetComponent(out IDraggableContainer draggableContainer))
@@ -107,17 +113,18 @@ public class DragExtended : Drag
         }
         else
         {
-            Reset();
+            ResetRect();
         }
 
         _image.raycastTarget = true;
     }
 
-    private void Reset()
+    private void ResetRect()
     {
         _cachedTransform.SetParent(_lastParent);
         _cachedTransform.SetSiblingIndex(_lastSiblingIndex);
         Register(_lastSiblingIndex);
+        _image.raycastTarget = true;
     }
 
     private void SetRectSibling(int index)

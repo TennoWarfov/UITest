@@ -22,6 +22,9 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
     private StringAscendingComparer _stringAscendingComparer;
     private StringDescendingComparer _stringDescendingComparer;
 
+    private bool _intSortingEnabled;
+    private bool _stringSortingEnabled;
+
     private void Start()
     {
         DataHoldersInitialization();
@@ -61,18 +64,26 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
     #region Event processing
     public void OnEvent(IntSortEvent @event)
     {
+        _intSortingEnabled = @event.Value;
+
         if (@event.Value)
             Sort(_intAscendingComparer);
         else
             Sort(_intDescendingComparer);
+
+        UpdateItemsCount();
     }
 
     public void OnEvent(StringSortEvent @event)
     {
+        _stringSortingEnabled = @event.Value;
+
         if (@event.Value)
             Sort(_stringAscendingComparer);
         else
             Sort(_stringDescendingComparer);
+
+        UpdateItemsCount();
     }
 
     public void OnEvent(DataLoadEvent @event)
@@ -80,6 +91,8 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
         ClearData();
 
         GenerateData(@event.Datas);
+
+        SortIfSortingEnabled();
     }
     #endregion
 
@@ -93,20 +106,30 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
         }
     }
 
+    private void SortIfSortingEnabled()
+    {
+        if (_intSortingEnabled)
+            Sort(_intAscendingComparer);
+        else
+            Sort(_stringAscendingComparer);
+
+        UpdateItemsCount();
+    }
+
     public void RegisterDataHolder(DataHolder dataHolder, int index)
     {
         if (!_dataHolders.Contains(dataHolder))
             _dataHolders.Insert(index, dataHolder);
 
-        UpdateItemsCount();
+        SortIfSortingEnabled();
     }
 
-    public void UnregisterDataHodler(DataHolder dataHolder)
+    public void UnregisterDataHolder(DataHolder dataHolder)
     {
         if(_dataHolders.Contains(dataHolder))
             _dataHolders.Remove(dataHolder);
 
-        UpdateItemsCount();
+        SortIfSortingEnabled();
     }
 
     private void GenerateData(List<Data> datas)

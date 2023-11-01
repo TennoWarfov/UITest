@@ -52,7 +52,7 @@ public class DataManipulationPresenter : MonoBehaviour
 #if UNITY_STANDALONE_WIN
         List<Data> loadedData = _loadModel.LoadData();
 
-        if (loadedData.Count == 0) return;
+        if (loadedData == null) return;
 
         _sortingEventBusHolder.EventBus.Raise(new DataLoadEvent(loadedData));
 #endif
