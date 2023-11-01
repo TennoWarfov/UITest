@@ -70,6 +70,22 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
         }
     }
 
+    public void RegisterDataHolder(DataHolder dataHolder, int index)
+    {
+        if (!_dataHolders.Contains(dataHolder))
+            _dataHolders.Insert(index, dataHolder);
+
+        UpdateItemsCount();
+    }
+
+    public void UnregisterDataHodler(DataHolder dataHolder)
+    {
+        if(_dataHolders.Contains(dataHolder))
+            _dataHolders.Remove(dataHolder);
+
+        UpdateItemsCount();
+    }
+
     private void UpdateItemsCount()
     {
         _itemsCount.text = $"Items count: {_dataHolders.Count}";

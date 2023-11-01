@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class DragExtended : Drag, IPointerDownHandler
+public class DragExtended : Drag
 {
     [SerializeField] private MaskableGraphic[] _graphics;
 
@@ -14,25 +14,24 @@ public class DragExtended : Drag, IPointerDownHandler
     private Canvas _canvas;
     private Image _image;
     private GraphicRaycaster _raycaster;
+    private DataHolder _dataHolder;
+    private SortingPresenter _lastSortingPresenter;
 
     private void Awake()
     {
         _image = GetComponent<Image>();
         _canvas = GetComponentInParent<Canvas>();
         _raycaster = GetComponentInParent<GraphicRaycaster>();
+        _dataHolder = GetComponent<DataHolder>();
+        _lastSortingPresenter = GetComponentInParent<SortingPresenter>();
         _cachedTransform = transform;
-    }
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        
     }
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
+        _lastSortingPresenter.UnregisterDataHodler(_dataHolder);
         _lastParent = _cachedTransform.parent;
         _lastSiblingIndex = GetChildIndexInHierarchy(transform);
-        Debug.Log(_lastSiblingIndex);
         _image.raycastTarget = false;
         _cachedTransform.SetParent(_canvas.transform);
 
@@ -80,19 +79,53 @@ public class DragExtended : Drag, IPointerDownHandler
         if (enteringUIElement.TryGetComponent(out SortingPresenter sortingPresenter))
         {
             _cachedTransform.SetParent(sortingPresenter.DataHodlersParent);
+            if (_lastHoveredTransfrom.TryGetComponent(out Drag _))
+            {
+                int siblingIndex = GetChildIndexInHierarchy(_lastHoveredTransfrom);
+                SetRectSibling(siblingIndex);
+            }
+            else
+            {
+                int totalSiblings = sortingPresenter.DataHodlersParent.childCount;
+                int lastSiblingIndex = totalSiblings - 1;
+                SetRectSibling(lastSiblingIndex);
+            }
+
+            Debug.Log(_lastHoveredTransfrom);
         }
-        else if (enteringUIElement.TryGetComponent(out DataHolder _))
+        else if (enteringUIElement.TryGetComponent(out Drag _))
         {
             _cachedTransform.SetParent(enteringUIElement.parent);
             int enteringUiIndex = GetChildIndexInHierarchy(enteringUIElement);
+            int totalSiblings = enteringUIElement.parent.childCount;
+            int lastSiblingIndex = totalSiblings - 1;
+
+            if(enteringUiIndex == 0)
+                SetRectSibling(0);
+            else if(enteringUiIndex == lastSiblingIndex)
+                SetRectSibling(lastSiblingIndex);
+            else
+                SetRectSibling(enteringUiIndex);
         }
         else
         {
-            _cachedTransform.SetParent(_lastParent);
-            _cachedTransform.SetSiblingIndex(_lastSiblingIndex);
+            Reset();
         }
 
         _image.raycastTarget = true;
+    }
+
+    private void Reset()
+    {
+        _cachedTransform.SetParent(_lastParent);
+        _cachedTransform.SetSiblingIndex(_lastSiblingIndex);
+    }
+
+    private void SetRectSibling(int index)
+    {
+        _cachedTransform.SetSiblingIndex(index);
+        _lastSortingPresenter = _cachedTransform.GetComponentInParent<SortingPresenter>();
+        _lastSortingPresenter.RegisterDataHolder(_dataHolder, index);
     }
 
     private int GetChildIndexInHierarchy(Transform child)
@@ -106,6 +139,7 @@ public class DragExtended : Drag, IPointerDownHandler
                 break;
             }
         }
+
         return index;
     }
 }
