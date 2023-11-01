@@ -1,16 +1,16 @@
-﻿namespace EventBusPattern
-{
-    /*public readonly struct SortingEvent: IEvent
-    {
-        public readonly bool IntSort;
-        public readonly bool StringSort;
+﻿using System.Collections.Generic;
 
-        public SortingEvent(bool intSort, bool stringSort)
+namespace EventBusPattern
+{
+    public readonly struct DataLoadEvent : IEvent
+    {
+        public readonly List<Data> Datas;
+
+        public DataLoadEvent(List<Data> datas)
         {
-            IntSort = intSort;
-            StringSort = stringSort;
+            Datas = datas;
         }
-    }*/
+    }
 
     public readonly struct IntSortEvent : IEvent
     {

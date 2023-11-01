@@ -76,9 +76,9 @@ public class DragExtended : Drag
 
         var enteringUIElement = eventData.pointerEnter.transform;
 
-        if (enteringUIElement.TryGetComponent(out SortingPresenter sortingPresenter))
+        if (enteringUIElement.TryGetComponent(out IDraggableContainer draggableContainer))
         {
-            _cachedTransform.SetParent(sortingPresenter.DataHodlersParent);
+            _cachedTransform.SetParent(draggableContainer.DraggablesContainer);
             if (_lastHoveredTransfrom.TryGetComponent(out Drag _))
             {
                 int siblingIndex = GetChildIndexInHierarchy(_lastHoveredTransfrom);
@@ -86,12 +86,10 @@ public class DragExtended : Drag
             }
             else
             {
-                int totalSiblings = sortingPresenter.DataHodlersParent.childCount;
+                int totalSiblings = draggableContainer.DraggablesContainer.childCount;
                 int lastSiblingIndex = totalSiblings - 1;
                 SetRectSibling(lastSiblingIndex);
             }
-
-            Debug.Log(_lastHoveredTransfrom);
         }
         else if (enteringUIElement.TryGetComponent(out Drag _))
         {
@@ -119,11 +117,17 @@ public class DragExtended : Drag
     {
         _cachedTransform.SetParent(_lastParent);
         _cachedTransform.SetSiblingIndex(_lastSiblingIndex);
+        Register(_lastSiblingIndex);
     }
 
     private void SetRectSibling(int index)
     {
         _cachedTransform.SetSiblingIndex(index);
+        Register(index);
+    }
+
+    private void Register(int index)
+    {
         _lastSortingPresenter = _cachedTransform.GetComponentInParent<SortingPresenter>();
         _lastSortingPresenter.RegisterDataHolder(_dataHolder, index);
     }

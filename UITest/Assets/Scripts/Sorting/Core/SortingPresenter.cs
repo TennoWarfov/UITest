@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEventReceiver<StringSortEvent>
+public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEventReceiver<StringSortEvent>, IEventReceiver<DataLoadEvent>, IDraggableContainer
 {
     public UniqueId Id { get; } = new();
-    public Transform DataHodlersParent => _dataHoldersParent;
+    public Transform DraggablesContainer => _dataHoldersParent;
+    public List<Data> Datas => GetDataFrom(_dataHolders);
 
     [SerializeField] private TextMeshProUGUI _itemsCount;
     [SerializeField] private SortingEventBusHolder _eventBusHolder;
     [SerializeField] private Transform _dataHoldersParent;
+    [SerializeField] private DataHolderFactory _dataHoldersFactory;
+    [SerializeField] private InitialListConfiguration _initialListConfig;
     [SerializeField] private List<DataHolder> _dataHolders = new();
 
+    private RandomDataGenerator _randomDataGenerator;
     private IntAscendingComparer _intAscendingComparer;
     private IntDescendingComparer _intDescendingComparer;
     private StringAscendingComparer _stringAscendingComparer;
@@ -20,12 +24,7 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
 
     private void Start()
     {
-        if(_dataHolders.Count == 0)
-        {
-            DataHolder[] dataHolders = GetComponentsInChildren<DataHolder>();
-            _dataHolders = new();
-            _dataHolders.AddRange(dataHolders);
-        }
+        DataHoldersInitialization();
 
         UpdateItemsCount();
 
@@ -36,14 +35,30 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
 
         _eventBusHolder.EventBus.Register(this as IEventReceiver<IntSortEvent>);
         _eventBusHolder.EventBus.Register(this as IEventReceiver<StringSortEvent>);
+        _eventBusHolder.EventBus.Register(this as IEventReceiver<DataLoadEvent>);
     }
 
     private void OnDestroy()
     {
         _eventBusHolder.EventBus.Unregister(this as IEventReceiver<IntSortEvent>);
         _eventBusHolder.EventBus.Unregister(this as IEventReceiver<StringSortEvent>);
+        _eventBusHolder.EventBus.Unregister(this as IEventReceiver<DataLoadEvent>);
     }
 
+    private void DataHoldersInitialization()
+    {
+        _randomDataGenerator = new();
+        RandomDataPrecursor randomDataPrecursor = new(_initialListConfig.DataTypePrecursor);
+
+        for (int i = 0; i < _initialListConfig.InitialDataHoldersCount; i++)
+        {
+            DataHolder dataHolder = (DataHolder)_dataHoldersFactory.GetProduct(_dataHoldersParent);
+            _randomDataGenerator.GenerateData(randomDataPrecursor, dataHolder);
+            _dataHolders.Add(dataHolder);
+        }
+    }
+
+    #region Event processing
     public void OnEvent(IntSortEvent @event)
     {
         if (@event.Value)
@@ -59,6 +74,14 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
         else
             Sort(_stringDescendingComparer);
     }
+
+    public void OnEvent(DataLoadEvent @event)
+    {
+        ClearData();
+
+        GenerateData(@event.Datas);
+    }
+    #endregion
 
     private void Sort(IComparer<IComparable> comparer)
     {
@@ -84,6 +107,40 @@ public class SortingPresenter : MonoBehaviour, IEventReceiver<IntSortEvent>, IEv
             _dataHolders.Remove(dataHolder);
 
         UpdateItemsCount();
+    }
+
+    private void GenerateData(List<Data> datas)
+    {
+        for (int i = 0; i < datas.Count; i++)
+        {
+            DataHolder dataHolder = (DataHolder)_dataHoldersFactory.GetProduct(_dataHoldersParent);
+
+            dataHolder.Int = datas[i].Int;
+            dataHolder.String = datas[i].String;
+
+            _dataHolders.Add(dataHolder);
+        }
+    }
+
+    private void ClearData()
+    {
+        for (int i = 0; i < _dataHolders.Count; i++)
+        {
+            Destroy(_dataHolders[i].gameObject);
+        }
+
+        _dataHolders.Clear();
+    }
+
+    private List<Data> GetDataFrom(List<DataHolder> dataHolders)
+    {
+        List<Data> datas = new();
+        for (int i = 0; i < dataHolders.Count; i++)
+        {
+            datas.Add(new Data(dataHolders[i].Int, dataHolders[i].String));
+        }
+
+        return datas;
     }
 
     private void UpdateItemsCount()

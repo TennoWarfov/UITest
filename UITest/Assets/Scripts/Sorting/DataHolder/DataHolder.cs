@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-public class DataHolder: MonoBehaviour, IComparable
+public class DataHolder: MonoBehaviour, IComparable, IProduct, IGenerable
 {
     public int Int
     {
@@ -31,18 +31,8 @@ public class DataHolder: MonoBehaviour, IComparable
 
     private int _number;
     private string _string;
-    private readonly string _intLetters = "0123456789";
-    private readonly string _stringLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    private void Start()
-    {
-        RandomCharacterGenerator randomCharacterGenerator = new();
-        randomCharacterGenerator.GenerateRandomCharacters(_intLetters, 3, out int num);
-        randomCharacterGenerator.GenerateRandomCharacters(_stringLetters, 10, out string str);
-
-        Int = num;
-        String = str;
-    }
+    public void Initialize() { }
 
     private void OnValidate()
     {
